@@ -1,2 +1,5 @@
 #nose
 #zope.component[zcml]
+nose
+zope.schema
+zope.i18nmessageid
