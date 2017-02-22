@@ -3,3 +3,4 @@
 nose
 zope.schema
 zope.i18nmessageid
+sqlalchemy
