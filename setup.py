@@ -4,7 +4,8 @@
 #   * `Python Project Howto <http://infinitemonkeycorps.net/docs/pph/>`_
 
 from setuptools import setup, find_packages
-import sys, os
+import sys
+import os
 #from Cython.Build import cythonize
 from setuptools.extension import Extension
 
@@ -39,24 +40,24 @@ dependency_links = [
     #'https://github.com/<user2>/<package2>/archive/master.zip#egg=<package2>-0.3.0',
 ]
 
-#Cython extension
+# Cython extension
 
-#TOP_DIR="/home/eugeneai/Development/codes/NLP/workprog/tmp/link-grammar"
-#LG_DIR="link-grammar"
-#LG_LIB_DIR=os.path.join(TOP_DIR,LG_DIR,".libs")
-#LG_HEADERS=os.path.join(TOP_DIR)
+# TOP_DIR="/home/eugeneai/Development/codes/NLP/workprog/tmp/link-grammar"
+# LG_DIR="link-grammar"
+# LG_LIB_DIR=os.path.join(TOP_DIR,LG_DIR,".libs")
+# LG_HEADERS=os.path.join(TOP_DIR)
 
-ext_modules=[
-#    Extension("../isu.alchemy.cython_module",
-#              sources=["src/./../isu.alchemy/cython_module.pyx"],
-#              libraries=["gdal"],
-#    )
+ext_modules = [
+    #    Extension("../isu.alchemy.cython_module",
+    #              sources=["src/./../isu.alchemy/cython_module.pyx"],
+    #              libraries=["gdal"],
+    #    )
 ]
 
 setup(
     name='../isu.alchemy',
     version=version,
-    description="Alchemy storage foe ISU Enterprise objects",
+    description="Alchemy storage for ISU Enterprise objects",
     long_description=README + '\n\n' + NEWS,
     # Get classifiers from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     # classifiers=[c.strip() for c in """
@@ -75,15 +76,15 @@ setup(
     url='https://github.com/isu-enterprise/isu.alchemy',
     license='GPL>=2',
     packages=find_packages("src"),
-    package_dir = {'': "src"},
-    namespace_packages = ['isu'],
+    package_dir={'': "src"},
+    namespace_packages=['isu'],
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    dependency_links = dependency_links,
+    dependency_links=dependency_links,
     extras_require={
-          'tests': tests_requires,
-          'dev': dev_requires,
+        'tests': tests_requires,
+        'dev': dev_requires,
     },
     test_suite='tests',
     entry_points={
@@ -92,5 +93,5 @@ setup(
     },
     #ext_modules = cythonize(ext_modules),
     #test_suite = 'nose.collector',
-    #setup_requires=['nose>=1.0','Cython','coverage']
+    # setup_requires=['nose>=1.0','Cython','coverage']
 )

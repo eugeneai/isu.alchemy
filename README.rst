@@ -1,4 +1,4 @@
-Alchemy storage foe ISU Enterprise objects
+Alchemy storage for ISU Enterprise objects
 ==========================================
 
 This package intended to be a way of object storage organization
