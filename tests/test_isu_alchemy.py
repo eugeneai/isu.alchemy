@@ -1,7 +1,7 @@
 import unittest
 
 
-class ../isu.alchemyTests(unittest.TestCase):
+class BasicTests(unittest.TestCase):
 
     def setUp(self):
         pass
