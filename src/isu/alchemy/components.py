@@ -4,7 +4,8 @@ from zope.component import adapter, getGlobalSiteManager
 import zope.schema
 import sqlalchemy
 import sqlalchemy.orm
-from sqlalchemy import Table, MetaData, Column, Integer, String, ForeignKey
+from sqlalchemy import Table, MetaData, Column, \
+    Integer, String, ForeignKey, UniqueConstraint
 
 from isu.enterprise.interfaces import IStorage
 import isu.alchemy.mapping as alcmap
@@ -64,8 +65,13 @@ class Storage(object):
         self.registry[cls] = table
 
     def _interfaces(self, cls):
-        ifaces = implementedBy(cls)
+        ifaces = implementedBy(cls).interfaces()
+        yield from self._each_interface(ifaces)
+
+    def _each_interface(self, ifaces):
         for iface in ifaces:
+            yield from self._each_interface(iface.__bases__)
+            print(iface)
             yield iface
 
     def _fields(self, cls):
@@ -97,17 +103,22 @@ class Storage(object):
         else:
             raise RuntimeError("no primary determinant defined")
 
-        columns = []
+        definitions = collections.OrderedDict()
         # FIXME Suppose the '' named determinant of the first
         # field to be the primary key.
         # Other determinants are unique combinations
 
         for name, field, iface in self._fields(cls):
-            columns.append(self.type_mapper.map(
-                name, field, primary_key=name in def_det))
+            definitions[name] = self.type_mapper.map(
+                name, field, primary_key=name in def_det)
+
+        for uni_key, uni_list in uniques.items():
+            uni_list = list(uni_list.keys())
+            definitions[uni_key] = UniqueConstraint(
+                *uni_list, name=uni_key)
 
         table = Table(tablename, self.metadata,
-                      *columns
+                      *definitions.values()
                       )
         sqlalchemy.orm.mapper(cls, table)
         # gsm = getGlobalSiteManager()

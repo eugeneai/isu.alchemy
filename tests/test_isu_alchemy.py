@@ -44,8 +44,20 @@ class IRefBookItem(Interface):
         required=True
     )
 
-    def test():
-        pass
+
+@determinants('code')
+class ICommondityItem(IRefBookItem):
+    code = zope.schema.TextLine(
+        title=u"Code",
+        description=u"The code of the item",
+        readonly=True,
+        required=True,
+    )
+    price = zope.schema.Decimal(
+        title=u"Price",
+        description=u"The price of the item",
+        required=True
+    )
 
 
 class TestSimpleObjectStorage:
@@ -59,10 +71,21 @@ class TestSimpleObjectStorage:
                 self.code = code
                 self.name = name
 
+        @implementer(ICommondityItem)
+        class Commondity(object):
+
+            def __init__(self, code, name):
+                self.code = code
+                self.name = name
+
         self.storage = Storage('sqlite:///:memory:', echo=True)
+        print("RefBookItem ---- ")
         self.storage.register_class(RefBookItem)
+        print("Commondity ---- ")
+        self.storage.register_class(Commondity)
         self.storage.initialize()
         self.rbi = RefBookItem(1, "Bread")
+        self.com = Commondity(1, "Table")
         self.storage.commit()
 
     def test_interface(self):
