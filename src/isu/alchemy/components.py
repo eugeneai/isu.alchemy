@@ -113,10 +113,11 @@ class Storage(object):
                 name, field, primary_key=name in def_det)
 
         for uni_key, uni_list in uniques.items():
-            uni_list = list(uni_list.keys())
+            print(uni_key, uni_list)
             definitions[uni_key] = UniqueConstraint(
-                *uni_list, name=uni_key)
+                *uni_list, name=tablename + "_" + uni_key)
 
+        print(definitions)
         table = Table(tablename, self.metadata,
                       *definitions.values()
                       )

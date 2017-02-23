@@ -23,9 +23,9 @@ def determinant(field, name=''):
 
 class determinants:
 
-    def __init__(self, *args, determinant='primary'):
+    def __init__(self, *args, name='primary'):
         self.determinants = args
-        self.name = determinant
+        self.name = name
 
     def __call__(self, interface):
         attr = "__sql_determinants__"

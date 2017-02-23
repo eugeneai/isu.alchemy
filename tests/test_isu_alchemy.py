@@ -46,6 +46,7 @@ class IRefBookItem(Interface):
 
 
 @determinants('code')
+@determinants('code', 'group_code', name='test')
 class ICommondityItem(IRefBookItem):
     code = zope.schema.TextLine(
         title=u"Code",
