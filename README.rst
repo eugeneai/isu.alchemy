@@ -10,6 +10,11 @@ ORM mapping.
 
 I hope it could be done.
 
+http://docs.plone.org/develop/plone/forms/schemas.html
+
+http://grok.zope.org/documentation/how-to/orm-using-megrok.rdb-and-sqlalchemy
+
+
 Credits
 -------
 
