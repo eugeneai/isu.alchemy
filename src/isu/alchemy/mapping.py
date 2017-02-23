@@ -6,8 +6,9 @@ DEFAULT = {
     zope.schema.Bool: sqlalchemy.types.Boolean,
     zope.schema.Int: sqlalchemy.types.Integer,
     zope.schema.Float: sqlalchemy.types.Float,
-    zope.schema.TextLine: sqlalchemy.types.String,
+    zope.schema.TextLine: sqlalchemy.types.Unicode,
     # FIXME: How To differ from Unicode?
+    zope.schema.Text: sqlalchemy.types.UnicodeText,
     zope.schema.Bytes: sqlalchemy.types.String,
     zope.schema.BytesLine: sqlalchemy.types.String,
     zope.schema.ASCII: sqlalchemy.types.String,
@@ -42,7 +43,12 @@ class SchemaMapper(object):
         if isinstance(alchtype, tuple):
             alchtype, args = alchtype
             alchtype = alchtype(**dict(args))
-        if alchtype is sqlalchemy.types.String:
+        if alchtype in [
+                sqlalchemy.types.String,
+                sqlalchemy.types.Text,
+                sqlalchemy.types.Unicode,
+                sqlalchemy.types.UnicodeText,
+        ]:
             if size is None:
                 size = self.options["string-size"]
             alchtype = alchtype(size)
