@@ -27,6 +27,11 @@ DEFAULT = {
 
 }
 
+# InterfaceField
+# Choice -> Enum or Relation
+# List,Tuple,Set,FrozenSet,Object, Dict -> ? relation
+
+
 DEFAULT_STRING_SIZE = 256
 
 
