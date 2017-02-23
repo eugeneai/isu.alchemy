@@ -55,7 +55,7 @@ ext_modules = [
 ]
 
 setup(
-    name='../isu.alchemy',
+    name='isu.alchemy',
     version=version,
     description="Alchemy storage for ISU Enterprise objects",
     long_description=README + '\n\n' + NEWS,
@@ -89,7 +89,7 @@ setup(
     test_suite='tests',
     entry_points={
         'console_scripts':
-            ['../isu.alchemy=isu.alchemy:main']
+            ['isu.alchemy=isu.alchemy:main']
     },
     #ext_modules = cythonize(ext_modules),
     #test_suite = 'nose.collector',
