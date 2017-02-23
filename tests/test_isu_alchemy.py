@@ -20,12 +20,19 @@ class BasicTests(unittest.TestCase):
         pass
 
 
-@determinants('code')
+@determinants('code', 'group_code')
 class IRefBookItem(Interface):
 
     code = zope.schema.Int(
         title=u"Code",
         description=u"The code of the item",
+        readonly=True,
+        required=True,
+    )
+
+    group_code = zope.schema.Int(
+        title=u"Group Code",
+        description=u"The code of the item group",
         readonly=True,
         required=True,
     )

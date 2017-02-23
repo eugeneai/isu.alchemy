@@ -23,7 +23,7 @@ def determinant(field, name=''):
 
 class determinants:
 
-    def __init__(self, *args, determinant=''):
+    def __init__(self, *args, determinant='primary'):
         self.determinants = args
         self.name = determinant
 
@@ -31,5 +31,6 @@ class determinants:
         attr = "__sql_determinants__"
         if not hasattr(interface, attr):
             interface.__sql_determinants__ = collections.OrderedDict()
+        # FIXME: What about determinant definition?
         interface.__sql_determinants__[self.name] = self.determinants
         return(interface)

@@ -88,12 +88,19 @@ class Storage(object):
             if hasattr(iface, "__sql_determinants__"):
                 determinants.update(iface.__sql_determinants__)
 
-        def_det = list(determinants.values())[0]
+        if len(determinants) == 0:
+            raise RuntimeError("no determinants defined")
+
+        if 'primary' in determinants:
+            def_det = determinants.pop('primary')
+            uniques = determinants
+        else:
+            raise RuntimeError("no primary determinant defined")
 
         columns = []
-        # FIXME Suppose the first field to be key.
-        # May be add some adapter engine defining set of
-        # attributes describing key
+        # FIXME Suppose the '' named determinant of the first
+        # field to be the primary key.
+        # Other determinants are unique combinations
 
         for name, field, iface in self._fields(cls):
             columns.append(self.type_mapper.map(
