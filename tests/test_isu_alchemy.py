@@ -5,6 +5,7 @@ from isu.alchemy.components import (
     AnInterfaceToISorableAdapter,
     Storage
 )
+from isu.alchemy.schema import determinants
 
 
 class BasicTests(unittest.TestCase):
@@ -19,12 +20,14 @@ class BasicTests(unittest.TestCase):
         pass
 
 
+@determinants('code')
 class IRefBookItem(Interface):
+
     code = zope.schema.Int(
         title=u"Code",
         description=u"The code of the item",
         readonly=True,
-        required=True
+        required=True,
     )
 
     name = zope.schema.TextLine(
@@ -33,6 +36,9 @@ class IRefBookItem(Interface):
         readonly=True,
         required=True
     )
+
+    def test():
+        pass
 
 
 class TestSimpleObjectStorage:

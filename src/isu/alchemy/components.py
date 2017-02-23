@@ -8,6 +8,7 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, ForeignKey
 
 from isu.enterprise.interfaces import IStorage
 import isu.alchemy.mapping as alcmap
+import collections
 
 
 @implementer(IStorable)
@@ -62,13 +63,16 @@ class Storage(object):
         table = self._add_metadata_for(cls, tablename=tablename)
         self.registry[cls] = table
 
+    def _interfaces(self, cls):
+        ifaces = implementedBy(cls)
+        for iface in ifaces:
+            yield iface
+
     def _fields(self, cls):
         """Enumerate all fields of implemented interface
         in appearance order.
         """
-
-        ifaces = implementedBy(cls)
-        for iface in ifaces:
+        for iface in self._interfaces(cls):
             fields = zope.schema.getFieldsInOrder(iface)
             for name, field in fields:
                 yield name, field, iface
@@ -79,18 +83,21 @@ class Storage(object):
 
         tablename = self.prefix + tablename
 
-        columns = []
-        #columns.append(Column('code', Integer, primary_key=True))
-        #columns.append(Column('name', String(100)))
+        determinants = collections.OrderedDict()
+        for iface in self._interfaces(cls):
+            if hasattr(iface, "__sql_determinants__"):
+                determinants.update(iface.__sql_determinants__)
 
+        def_det = list(determinants.values())[0]
+
+        columns = []
         # FIXME Suppose the first field to be key.
         # May be add some adapter engine defining set of
         # attributes describing key
-        first = True
+
         for name, field, iface in self._fields(cls):
             columns.append(self.type_mapper.map(
-                name, field, primary_key=first))
-            first &= False
+                name, field, primary_key=name in def_det))
 
         table = Table(tablename, self.metadata,
                       *columns
