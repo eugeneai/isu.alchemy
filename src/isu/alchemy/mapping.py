@@ -45,9 +45,9 @@ class SchemaMapper(object):
             alchtype = alchtype(**dict(args))
         if alchtype in [
                 sqlalchemy.types.String,
-                sqlalchemy.types.Text,
+                # sqlalchemy.types.Text,
                 sqlalchemy.types.Unicode,
-                sqlalchemy.types.UnicodeText,
+                # sqlalchemy.types.UnicodeText,
         ]:
             if size is None:
                 size = self.options["string-size"]
