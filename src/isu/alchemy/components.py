@@ -71,7 +71,6 @@ class Storage(object):
     def _each_interface(self, ifaces):
         for iface in ifaces:
             yield from self._each_interface(iface.__bases__)
-            print(iface)
             yield iface
 
     def _fields(self, cls):
@@ -113,11 +112,9 @@ class Storage(object):
                 name, field, primary_key=name in def_det)
 
         for uni_key, uni_list in uniques.items():
-            print(uni_key, uni_list)
             definitions[uni_key] = UniqueConstraint(
                 *uni_list, name=tablename + "_" + uni_key)
 
-        print(definitions)
         table = Table(tablename, self.metadata,
                       *definitions.values()
                       )

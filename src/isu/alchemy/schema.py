@@ -1,24 +1,4 @@
 import collections
-#from zope.component import getUtility
-#from isu.enterprise import IDeterminantRegistry
-
-
-# class DeterminantRegistry(object):
-
-#     def __init__(self):
-#         self.interfaces = collections.OrderedDict()
-
-#     def register(self, interface, determinant, field):
-#         det = self.interfaces.setdefault(interface, collections.OrderedDict())
-#         fields = det.setdefault(determinant, collections.OrderedDict())
-#         fields[field] = True
-
-
-def determinant(field, name=''):
-    print(field)
-    # registry = getUtility(IDeterminantRegistry)
-    field.__determinant__ = name
-    return field
 
 
 class determinants:

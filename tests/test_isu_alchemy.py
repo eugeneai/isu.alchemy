@@ -44,6 +44,11 @@ class IRefBookItem(Interface):
         required=True
     )
 
+    def test():
+        """
+        Just test method.
+        """
+
 
 @determinants('code')
 @determinants('code', 'group_code', name='test')
@@ -80,9 +85,7 @@ class TestSimpleObjectStorage:
                 self.name = name
 
         self.storage = Storage('sqlite:///:memory:', echo=True)
-        print("RefBookItem ---- ")
         self.storage.register_class(RefBookItem)
-        print("Commondity ---- ")
         self.storage.register_class(Commondity)
         self.storage.initialize()
         self.rbi = RefBookItem(1, "Bread")
