@@ -36,6 +36,8 @@ DEFAULT_STRING_SIZE = 256
 
 
 class SchemaMapper(object):
+        """Maps a zope.schema field to a sqlalchemy one.
+        """
 
     def __init__(self, **kwargs):
         self.mapping = DEFAULT
@@ -44,17 +46,34 @@ class SchemaMapper(object):
             opts["string-size"] = DEFAULT_STRING_SIZE
 
     def map(self, name, field, size=None, **kwargs):
-        alchtype = self.mapping[field.__class__]
+        alchtype = self.mapping.get(field.__class__, None)
+        if alchtype is None:
+            kwa = {}
+            kwa.update(kwargs)
+            kwa["__size__"] = size
+            kwa["__field__"] = field
+            kwa["__name__"] = name
+            return self.complex_map(kwa)
         if isinstance(alchtype, tuple):
             alchtype, args = alchtype
             alchtype = alchtype(**dict(args))
         if alchtype in [
                 sqlalchemy.types.String,
-                # sqlalchemy.types.Text,
                 sqlalchemy.types.Unicode,
-                # sqlalchemy.types.UnicodeText,
         ]:
             if size is None:
                 size = self.options["string-size"]
             alchtype = alchtype(size)
         return sqlalchemy.Column(name, alchtype, **kwargs)
+
+    def complex_map(self, kwa):
+        field = kwa["__field__"]
+        # FIXME: Process everything in combination depending to
+        # the set of implemented interfaces.
+        # That wold be really COOL
+        # Now it is exclusive.
+        if zope.schema.interfaces.IChoice.implementedBy(field):
+            return self.choice(kwa)
+        if zope.schema.interfaces.ICollection.implementedBy(field):
+            return self.collection(kwa)
+        raise RuntimeError('cannot convert field')
