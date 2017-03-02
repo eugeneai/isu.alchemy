@@ -18,3 +18,8 @@ class IStorableRegistry(Interface):
 #    """Marker interface for
 #    storage engine of SQLAlchemy.
 #    """
+
+class IColumn(Interface):
+    """Marker interface to define adapters
+    for SQLAlchemy Columns
+    """
