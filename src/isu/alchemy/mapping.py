@@ -1,19 +1,20 @@
-from zope.schema.interfaces import IFromUnicode
+from zope.schema.interfaces import IFromUnicode, IBool, IInt
+from zope.schema.interfaces import ITextLine, IFloat, IText
 from isu.alchemy.interfaces import IColumn
 from zope.component import adapter, getGlobalSiteManager
 from zope.component import queryAdapter
 import zope.schema
 import sqlalchemy.types
 import sqlalchemy
-from zope.interface import implementer
+from zope.interface import implementer, Interface, providedBy
 
 DEFAULT = {
-    zope.schema.Bool: sqlalchemy.types.Boolean,
-    zope.schema.Int: sqlalchemy.types.Integer,
-    zope.schema.Float: sqlalchemy.types.Float,
+    # zope.schema.Bool: sqlalchemy.types.Boolean,
+    # zope.schema.Int: sqlalchemy.types.Integer,
+    # zope.schema.Float: sqlalchemy.types.Float,
     # zope.schema.TextLine: sqlalchemy.types.Unicode,
     # FIXME: How To differ from Unicode?
-    zope.schema.Text: sqlalchemy.types.UnicodeText,
+    # zope.schema.Text: sqlalchemy.types.UnicodeText,
     zope.schema.Bytes: sqlalchemy.types.String,
     zope.schema.BytesLine: sqlalchemy.types.String,
     zope.schema.ASCII: sqlalchemy.types.String,
@@ -54,7 +55,8 @@ class SchemaMapper(object):
         Column of SQLAlchemy having 'name' as field name
         in its table.
         """
-        # print(name, field)
+        print(name, field)
+        print(list(providedBy(field)))
         field_class = field.__class__
         alchtype = self.mapping.get(field_class, None)
         adapter = queryAdapter(field)
@@ -103,6 +105,7 @@ class SchemaMapper(object):
 # Adapter-oriented implementations
 
 
+@implementer(IColumn)
 class ColumnAdapterBase(object):
 
     def __init__(self, field):
@@ -114,20 +117,59 @@ class ColumnAdapterBase(object):
         raise RuntimeError("not implemented")
 
 
-@implementer(IColumn)
-@adapter(IFromUnicode)
+@adapter(ITextLine)
 class Adapter_IFromUnicodeToIColumn(ColumnAdapterBase):
     """Adapts unicode dtring fields
     to a storage Column of SQLAlchemy."""
 
     def convert(self, name, size=None, options=None):
-        if options is None:
-            options = {}
         if size is not None:
             type_ = sqlalchemy.types.String(self.size)
         else:
             type_ = sqlalchemy.types.String
         return type_
 
+
+@adapter(IText)
+class Adapter_ITextToIColumn(ColumnAdapterBase):
+    """Adapts unicode dtring fields
+    to a storage Column of SQLAlchemy."""
+
+    def convert(self, name, size=None, options=None):
+        if size is not None:
+            type_ = sqlalchemy.types.Text(self.size)
+        else:
+            type_ = sqlalchemy.types.Text
+        return type_
+
+
+@adapter(IBool)
+class Adapter_IBoolToIColumn(ColumnAdapterBase):
+    """Adapts Boolean fields."""
+
+    def convert(self, name, size=None, options=None):
+        return sqlalchemy.types.Boolean
+
+
+@adapter(IInt)
+class Adapter_IIntToIColumn(ColumnAdapterBase):
+    """Adapts Boolean fields."""
+
+    def convert(self, name, size=None, options=None):
+        return sqlalchemy.types.Integer
+
+
+@adapter(IFloat)
+class Adapter_IFloatToIColumn(ColumnAdapterBase):
+    """Adapts Boolean fields."""
+
+    def convert(self, name, size=None, options=None):
+        return sqlalchemy.types.Float
+
+
 GSM = getGlobalSiteManager()
+GSM.registerAdapter(Adapter_ITextToIColumn)
+GSM.registerAdapter(Adapter_IBoolToIColumn)
+GSM.registerAdapter(Adapter_IIntToIColumn)
+GSM.registerAdapter(Adapter_IFloatToIColumn)
 GSM.registerAdapter(Adapter_IFromUnicodeToIColumn)

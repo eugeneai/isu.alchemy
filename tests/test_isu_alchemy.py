@@ -64,6 +64,18 @@ class ICommondityItem(IRefBookItem):
         description=u"The price of the item",
         required=True
     )
+    b = zope.schema.Bool(
+        title="ABool"
+    )
+    i = zope.schema.Int(
+        title="ABool"
+    )
+    f = zope.schema.Float(
+        title="ABool"
+    )
+    t = zope.schema.Text(
+        title="ABool"
+    )
 
 
 class TestSimpleObjectStorage:
