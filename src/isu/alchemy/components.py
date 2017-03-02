@@ -118,6 +118,7 @@ class Storage(object):
         table = Table(tablename, self.metadata,
                       *definitions.values()
                       )
+        print("aaa:", table, definitions)
         sqlalchemy.orm.mapper(cls, table)
         # gsm = getGlobalSiteManager()
         # gsm.registerUtility(...)
