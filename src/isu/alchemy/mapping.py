@@ -11,7 +11,7 @@ DEFAULT = {
     zope.schema.Bool: sqlalchemy.types.Boolean,
     zope.schema.Int: sqlalchemy.types.Integer,
     zope.schema.Float: sqlalchemy.types.Float,
-    #zope.schema.TextLine: sqlalchemy.types.Unicode,
+    # zope.schema.TextLine: sqlalchemy.types.Unicode,
     # FIXME: How To differ from Unicode?
     zope.schema.Text: sqlalchemy.types.UnicodeText,
     zope.schema.Bytes: sqlalchemy.types.String,
@@ -54,16 +54,23 @@ class SchemaMapper(object):
         Column of SQLAlchemy having 'name' as field name
         in its table.
         """
-        alchtype = self.mapping.get(field.__class__, None)
-
-        if alchtype is None:
+        # print(name, field)
+        field_class = field.__class__
+        alchtype = self.mapping.get(field_class, None)
+        adapter = queryAdapter(field)
+        if adapter is not None:
+            type_ = adapter.convert(name=name,
+                                    size=size,
+                                    options=kwargs)
+            return sqlalchemy.Column(name, type_, **kwargs)
+        elif alchtype is None:
             kwa = {}
             kwa.update(kwargs)
             return self.complex_map(
                 size=size,
                 field=field,
                 name=name,
-                options = kwa)
+                options=kwa)
         if isinstance(alchtype, tuple):
             alchtype, args = alchtype
             alchtype = alchtype(**dict(args))
@@ -81,45 +88,46 @@ class SchemaMapper(object):
         # the set of implemented interfaces.
         # That wold be really COOL
         # Now it is exclusive.
-        adapter = queryAdapter(field)
-        if adapter is not None:
-            column = sqlalchemy.Column(name=name,**options)
-            adapter.convert(column)
-            assert column.type_ is not None, "type must be defined"
-            return column
         if zope.schema.interfaces.IChoice.implementedBy(field):
-            return self.choice(kwa)
+            return self.choice(size=size,
+                               field=field,
+                               name=name,
+                               options=options)
         if zope.schema.interfaces.ICollection.implementedBy(field):
-            return self.collection(kwa)
+            return self.collection(size=size,
+                                   field=field,
+                                   name=name,
+                                   options=options)
         raise RuntimeError('cannot convert field')
 
-## Adapter-oriented implementations
+# Adapter-oriented implementations
+
+
 class ColumnAdapterBase(object):
+
     def __init__(self, field):
-        self.field=field
-        self.name=None
-        self.field_name=None
-        self.size=None
+        self.field = field
+        self.name = None
 
     def convert(self):
         """Run the conversion process."""
         raise RuntimeError("not implemented")
+
 
 @implementer(IColumn)
 @adapter(IFromUnicode)
 class Adapter_IFromUnicodeToIColumn(ColumnAdapterBase):
     """Adapts unicode dtring fields
     to a storage Column of SQLAlchemy."""
-    def convert(self, column):
-        print(column.name)
-        if self.size is not None:
-            column.type_=sqlalchemy.types.String(self.size)
+
+    def convert(self, name, size=None, options=None):
+        if options is None:
+            options = {}
+        if size is not None:
+            type_ = sqlalchemy.types.String(self.size)
         else:
-            column.type_=sqlalchemy.types.String
-        return column
+            type_ = sqlalchemy.types.String
+        return type_
 
-GSM=getGlobalSiteManager()
+GSM = getGlobalSiteManager()
 GSM.registerAdapter(Adapter_IFromUnicodeToIColumn)
-
-
-
