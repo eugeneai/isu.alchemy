@@ -39,11 +39,17 @@ class Storage(object):
         session.configure(bind=self.engine)
         self.session = session()
         self.metadata = MetaData()
-        self.type_mapper = alcmap.SchemaMapper()  # FIXME make it an utility
+        self.tables = collections.OrderedDict()
+        self.relations = collections.OrderedDict()
+        self.type_mapper = alcmap.SchemaMapper(
+            relations=self.relations)  # FIXME make it an utility
         self.registry = {}
         self.prefix = prefix
 
     def initialize(self):
+        for cls, table_def in self.tables.items():
+            table, properties = table_def
+            sqlalchemy.orm.mapper(cls, table)
         self.metadata.create_all(self.engine)
 
     def store(self, object):
@@ -94,7 +100,8 @@ class Storage(object):
                 determinants.update(iface.__sql_determinants__)
 
         if len(determinants) == 0:
-            raise RuntimeError("no determinants defined")
+            raise RuntimeError(
+                "no determinants defined for {}".format(cls.__name__))
 
         if 'primary' in determinants:
             def_det = determinants.pop('primary')
@@ -109,7 +116,9 @@ class Storage(object):
 
         for name, field, iface in self._fields(cls):
             definitions[name] = self.type_mapper.map(
-                name, field, primary_key=name in def_det)
+                name, field, primary_key=name in def_det,
+                __cls__=cls
+            )
 
         for uni_key, uni_list in uniques.items():
             definitions[uni_key] = UniqueConstraint(
@@ -118,6 +127,6 @@ class Storage(object):
         table = Table(tablename, self.metadata,
                       *definitions.values()
                       )
-        sqlalchemy.orm.mapper(cls, table)
+        self.tables[cls] = (table, collections.OrderedDict())
         # gsm = getGlobalSiteManager()
         # gsm.registerUtility(...)

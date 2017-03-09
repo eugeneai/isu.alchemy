@@ -9,12 +9,6 @@ import sqlalchemy
 from zope.interface import implementer, Interface, providedBy
 
 DEFAULT = {
-    # zope.schema.Bool: sqlalchemy.types.Boolean,
-    # zope.schema.Int: sqlalchemy.types.Integer,
-    # zope.schema.Float: sqlalchemy.types.Float,
-    # zope.schema.TextLine: sqlalchemy.types.Unicode,
-    # FIXME: How To differ from Unicode?
-    # zope.schema.Text: sqlalchemy.types.UnicodeText,
     zope.schema.Bytes: sqlalchemy.types.String,
     zope.schema.BytesLine: sqlalchemy.types.String,
     zope.schema.ASCII: sqlalchemy.types.String,
@@ -44,8 +38,9 @@ DEFAULT_STRING_SIZE = 256
 class SchemaMapper(object):
     """Maps a zope.schema fields to a sqlalchemy one."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, relations, **kwargs):
         self.mapping = DEFAULT
+        self.relations = relations
         opts = self.options = kwargs
         if "string-size" not in opts:
             opts["string-size"] = DEFAULT_STRING_SIZE
@@ -61,10 +56,17 @@ class SchemaMapper(object):
         alchtype = self.mapping.get(field_class, None)
         adapter = queryAdapter(field)
         if adapter is not None:
+            kw = {}
+            kw.update(kwargs)
+            kw["__relations__"] = self.relations
             type_ = adapter.convert(name=name,
                                     size=size,
-                                    options=kwargs)
-            return sqlalchemy.Column(name, type_, **kwargs)
+                                    options=kw)
+            kw = {k: v for k, v in kw.items() if not k.startswith("__")}
+            if type_ is not None:
+                return sqlalchemy.Column(name, type_, **kw)
+            else:
+                return None
         elif alchtype is None:
             kwa = {}
             kwa.update(kwargs)
@@ -83,23 +85,19 @@ class SchemaMapper(object):
             if size is None:
                 size = self.options["string-size"]
             alchtype = alchtype(size)
-        return sqlalchemy.Column(name, alchtype, **kwargs)
+        kw = {k: v for k, v in kwargs.items() if not k.startswith("__")}
+        return sqlalchemy.Column(name, alchtype, **kw)
 
     def complex_map(self, name, field, size, options):
         # FIXME: Process everything in combination depending to
         # the set of implemented interfaces.
         # That wold be really COOL
         # Now it is exclusive.
-        if zope.schema.interfaces.IChoice.implementedBy(field):
+        if zope.schema.interfaces.IChoice.providedBy(field):
             return self.choice(size=size,
                                field=field,
                                name=name,
                                options=options)
-        if zope.schema.interfaces.ICollection.implementedBy(field):
-            return self.collection(size=size,
-                                   field=field,
-                                   name=name,
-                                   options=options)
         raise RuntimeError('cannot convert field')
 
 # Adapter-oriented implementations
@@ -167,9 +165,24 @@ class Adapter_IFloatToIColumn(ColumnAdapterBase):
         return sqlalchemy.types.Float
 
 
+#@adapter(ICollection)
+#@adapter(IChoice)
+class Adapter_ReferenceToIColumn(ColumnAdapterBase):
+    def convert(self, name, size=None, options=None):
+        relations = options["__relations__"]
+        cls = options["__cls__"]
+        relations[(cls, name)] = self.field
+        return None
+
+
 GSM = getGlobalSiteManager()
 GSM.registerAdapter(Adapter_ITextToIColumn)
 GSM.registerAdapter(Adapter_IBoolToIColumn)
 GSM.registerAdapter(Adapter_IIntToIColumn)
 GSM.registerAdapter(Adapter_IFloatToIColumn)
 GSM.registerAdapter(Adapter_IFromUnicodeToIColumn)
+
+GSM.registerAdapter(Adapter_ReferenceToIColumn,
+                    (zope.schema.interfaces.ICollection,))
+GSM.registerAdapter(Adapter_ReferenceToIColumn,
+                    (zope.schema.interfaces.IChoice,))

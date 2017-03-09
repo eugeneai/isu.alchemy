@@ -50,6 +50,66 @@ class IRefBookItem(Interface):
         """
 
 
+@determinants("id")
+class IVocabularyItem(Interface):
+    id = zope.schema.Int(
+        title="Code",
+        description="The code of the Vocabulary item",
+        required=True
+    )
+    name = zope.schema.TextLine(
+        title="Name",
+        description="Name of the Vocabulary item",
+        required=True
+    )
+
+
+#@determinants("id")
+class IEmployee(IVocabularyItem):
+    """Defines schema for Employees"""
+    contractor = zope.schema.Choice(
+        title="Contractor",
+        description="The Contractor that hired the Employee",
+        vocabulary="contractors"
+    )
+
+
+#@determinants("id")
+class IContractor(IVocabularyItem):
+    employees = zope.schema.List(
+        title="Employees",
+        description="The list of Employees of the Contractor",
+        value_type=zope.schema.Object(
+            title="Employees",
+            description="An Employee element",
+            schema=IEmployee
+        )
+    )
+
+
+@implementer(IVocabularyItem)
+class VocabularyItem(object):
+    def __init__(self, id=None, name=None):
+        self.id = id
+        self.name = name
+
+
+@implementer(IEmployee)
+class Employee(VocabularyItem):
+    def __init__(self, id=None, name=None, contractor=None):
+        super(Contractor, self).init(id=id, name=name)
+        self.contractor = contractor
+
+
+@implementer(IContractor)
+class Contractor(VocabularyItem):
+    def __init__(self, id=None, name=None, employees=None):
+        super(Contractor, self).init(id=id, name=name)
+        if employees is None:
+            employees = []
+        self.employees = employees
+
+
 @determinants('code')
 @determinants('code', 'group_code', name='test')
 class ICommondityItem(IRefBookItem):
@@ -110,3 +170,17 @@ class TestSimpleObjectStorage:
     def test_storage_of_rbi(self):
         adapted = AnInterfaceToISorableAdapter(self.rbi)
         self.storage.store(self.rbi)
+
+
+class TestOneToManyRelation(object):
+    def setUp(self):
+        st = self.storage = Storage("sqlite:///:memory:", echo=True)
+        st.register_class(Employee)
+        st.register_class(Contractor)
+        print("-" * 30)
+        print(st.relations)
+        print("-" * 30)
+        st.initialize()
+
+    def test_db_creation(self):
+        assert self.storage
