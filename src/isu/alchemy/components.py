@@ -47,9 +47,10 @@ class Storage(object):
         self.prefix = prefix
 
     def initialize(self):
+        self._process_relations()
         for cls, table_def in self.tables.items():
             table, properties = table_def
-            sqlalchemy.orm.mapper(cls, table)
+            sqlalchemy.orm.mapper(cls, table, properties=properties)
         self.metadata.create_all(self.engine)
 
     def store(self, object):
@@ -130,3 +131,19 @@ class Storage(object):
         self.tables[cls] = (table, collections.OrderedDict())
         # gsm = getGlobalSiteManager()
         # gsm.registerUtility(...)
+
+    def _process_relations(self):
+        print("=" * 20)
+        for key, field in self.relations.items():
+            cls, name = key
+            if zope.schema.interfaces.ICollection.providedBy(field):
+                schema = field.value_type.schema
+                cls1 = [c for c in self.tables.keys()
+                        if schema.implementedBy(c)]
+                if len(cls1) > 1:
+                    print(cls1)
+                    raise RuntimeError(
+                        "more than one class implements the interface")
+                cls1 = cls1[0]
+                property = sqlalchemy.orm.relationship(name, cls)
+                self.tables[cls1][-1][name] = property

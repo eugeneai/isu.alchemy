@@ -50,8 +50,8 @@ class SchemaMapper(object):
         Column of SQLAlchemy having 'name' as field name
         in its table.
         """
-        print(name, field)
-        print(list(providedBy(field)))
+        #print(name, field)
+        # print(list(providedBy(field)))
         field_class = field.__class__
         alchtype = self.mapping.get(field_class, None)
         adapter = queryAdapter(field)
