@@ -50,7 +50,12 @@ class Storage(object):
         self._process_relations()
         for cls, table_def in self.tables.items():
             table, properties = table_def
-            sqlalchemy.orm.mapper(cls, table, properties=properties)
+            name, columns = table[0], table[1:]
+            print(name, columns, properties)
+            sqlalchemy.orm.mapper(cls, Table(
+                name, self.metadata, *columns
+            ),
+                properties=properties)
         self.metadata.create_all(self.engine)
 
     def store(self, object):
@@ -125,9 +130,9 @@ class Storage(object):
             definitions[uni_key] = UniqueConstraint(
                 *uni_list, name=tablename + "_" + uni_key)
 
-        table = Table(tablename, self.metadata,
-                      *definitions.values()
-                      )
+        table = (tablename,
+                 *definitions.values()
+                 )
         self.tables[cls] = (table, collections.OrderedDict())
         # gsm = getGlobalSiteManager()
         # gsm.registerUtility(...)
@@ -136,7 +141,9 @@ class Storage(object):
         print("=" * 20)
         for key, field in self.relations.items():
             cls, name = key
+            print(cls, name, field)
             if zope.schema.interfaces.ICollection.providedBy(field):
+                print("<<<<-")
                 schema = field.value_type.schema
                 cls1 = [c for c in self.tables.keys()
                         if schema.implementedBy(c)]
@@ -146,4 +153,5 @@ class Storage(object):
                         "more than one class implements the interface")
                 cls1 = cls1[0]
                 property = sqlalchemy.orm.relationship(name, cls)
+                print(name, cls)
                 self.tables[cls1][-1][name] = property

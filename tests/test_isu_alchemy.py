@@ -7,6 +7,9 @@ from isu.alchemy.components import (
 )
 from isu.alchemy.schema import determinants
 
+from nose.plugins.skip import SkipTest
+from nose.tools import assert_raises
+
 
 class BasicTests(unittest.TestCase):
 
@@ -64,7 +67,6 @@ class IVocabularyItem(Interface):
     )
 
 
-#@determinants("id")
 class IEmployee(IVocabularyItem):
     """Defines schema for Employees"""
     contractor = zope.schema.Choice(
@@ -74,7 +76,6 @@ class IEmployee(IVocabularyItem):
     )
 
 
-#@determinants("id")
 class IContractor(IVocabularyItem):
     employees = zope.schema.List(
         title="Employees",
@@ -89,6 +90,7 @@ class IContractor(IVocabularyItem):
 
 @implementer(IVocabularyItem)
 class VocabularyItem(object):
+
     def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
@@ -96,6 +98,7 @@ class VocabularyItem(object):
 
 @implementer(IEmployee)
 class Employee(VocabularyItem):
+
     def __init__(self, id=None, name=None, contractor=None):
         super(Contractor, self).init(id=id, name=name)
         self.contractor = contractor
@@ -103,8 +106,9 @@ class Employee(VocabularyItem):
 
 @implementer(IContractor)
 class Contractor(VocabularyItem):
+
     def __init__(self, id=None, name=None, employees=None):
-        super(Contractor, self).init(id=id, name=name)
+        super(Contractor, self).__init__(id=id, name=name)
         if employees is None:
             employees = []
         self.employees = employees
@@ -138,6 +142,7 @@ class ICommondityItem(IRefBookItem):
     )
 
 
+@SkipTest
 class TestSimpleObjectStorage:
 
     def setUp(self):
@@ -173,6 +178,7 @@ class TestSimpleObjectStorage:
 
 
 class TestOneToManyRelation(object):
+
     def setUp(self):
         st = self.storage = Storage("sqlite:///:memory:", echo=True)
         st.register_class(Employee)
